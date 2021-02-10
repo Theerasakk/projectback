@@ -1,6 +1,9 @@
 const Users = require("./../../models/users");
 const Utils = require("./../../utils");
 
+
+
+
 class UsersController {
   constructor() {}
 
@@ -44,14 +47,18 @@ class UsersController {
     try {
       let input = req.body;
       input.email = input.email || "";
-      input.name = input.name || "";
+      input.first_name = input.first_name || "";
 
       if (!new Utils().validateEmail(input.email)) {
         throw new Error("Invalid email.");
       }
 
-      if (!input.name) {
+      if (!input.first_name) {
         throw new Error("Require name.");
+      }
+
+      if (!input.last_name) {
+        throw new Error("Require last name.");
       }
 
       if (!input.password) {
@@ -68,8 +75,10 @@ class UsersController {
 
       await new Users({
         email: input.email,
-        name: input.name,
+        first_name: input.first_name,
+        last_name: input.last_name,
         password: password,
+        role: input.role
       }).save();
 
       res.status(200).json({
@@ -88,15 +97,15 @@ class UsersController {
       let authen_id = req.authen.id;
       // console.log(authen);
       if (authen) {
-        let users_query  = Users.query((qb) => {
+        let users_query  = Users.query((qb) => { // join ตาราง
           // qb.where("id", "=", authen_id);
           // qb.orWhere("id", "=")
-          qb.from('users').innerJoin('leavework','users.id','leavework.id_users')
+          qb.from('users').innerJoin('leavework','users.id','leavework.id')
           qb.where('users.id','=',authen_id)
         });
         // console.log(users_query)
-        let users = await users_query.fetchPage({
-          columns: ["id_leave","first_name", "last_name", "email", "date_time","type_leave"], 
+        let users = await users_query.fetchPage({ // select informatiom
+          columns: ['*'] 
           //เลือก colum ตาม db ของเราด้วย++++++++++
           // columns:["id"]
           // page: in, put.page,
@@ -104,7 +113,7 @@ class UsersController {
         });
         // console.log(users)
         users = users.toJSON();
-        console.log(users)
+        
         let count = await users_query.count();
 
         res.status(200).json({
@@ -184,6 +193,7 @@ class UsersController {
       });
     }
   }
+
 }
 
 module.exports = UsersController;

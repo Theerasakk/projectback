@@ -7,6 +7,8 @@ const Users = db.model('Users', {
     requireFetch: false
 })
 
+
+
 // Database Structure
 /*
 id: int(11) primary key auto increment

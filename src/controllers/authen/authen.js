@@ -1,6 +1,7 @@
 const Users = require("./../../models/users");
 const Utils = require("./../../utils");
 
+
 class AuthenController {
   constructor() {}
 
@@ -27,19 +28,33 @@ class AuthenController {
         throw new Error("Invalid email/password.");
       }
       user = user.toJSON();
-
+     
+    if(user.role === "admin"){
       let token = new Utils().signToken({
         id: user.id,
         name: user.name,
-        role: "member",
+        role: "admin",
+      });
+      res.status(200).json({
+        type: "Bearer",
+        token: token,
+      });
+      console.log(token)
+      
+    } else {
+      let token = new Utils().signToken({
+        id: user.id,
+        name: user.name,
+        role: "user",
       });
 
       res.status(200).json({
         type: "Bearer",
         token: token,
       });
-
-      console.log(user);
+    }
+    console.log(user);
+      console.log(user.role);
     } catch (err) {
       console.log(err.stack);
       res.status(400).json({
