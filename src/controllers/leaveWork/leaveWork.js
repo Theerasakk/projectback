@@ -1,5 +1,5 @@
 const { knex } = require("../../db");
-const Leavework = require("./../../models/leave_work");
+const LeaveworkModel = require("./../../models/leave_work");
 const Utils = require("./../../utils");
 const fs = require('fs');
 var admin = require("firebase-admin");
@@ -14,29 +14,26 @@ class LeaveworkController {
       let input = req.body;
       input.id_user_fk = input.id_user_fk || "";
       input.id_status_fk = input.id_status_fk || "";
-      input.id_type_fk = input.id_type_fk || "";
+      input.type = input.type || "";
       input.date_start = input.date_start || "";
       input.date_end = input.date_end || "";
       input.description = input.description || "";
-      input.file = input.file || "";
+      input.file = input.file
+      input.allday = input.allday || "";
       // await new Leavework({
       //   id_users: input.id_users,
       //   date_time: input.date_time,
       //   type_leave: input.type_leave,
       // }).save();
-      // await knex("leavework").insert({
-      //   date_time: input.date_time,
-      //   type_leave: input.type_leave,
-      //   id_users: input.id_users,
-      // });
       await new LeaveworkModel({
         id_user_fk: input.id_user_fk,
         id_status_fk: input.id_status_fk,
-        id_type_fk: input.id_type_fk,
+        type: input.type,
         date_start: input.date_start,
         date_end: input.date_end,
         description: input.description,
         file: input.file,
+        allday: input.allday
       }).save();
 
       // .from("user")
@@ -59,7 +56,7 @@ class LeaveworkController {
       input.page = input.page || 1;
       input.per_page = input.per_page || 10;
 
-      let leave_query = Leavework.query((qb) => {
+      let leave_query = LeaveworkModel.query((qb) => {
         if (input.search) {
           qb.where("id", "LIKE", `%${input.search}%`);
           qb.orWhere("description", "LIKE", `%${input.search}%`);
@@ -69,7 +66,7 @@ class LeaveworkController {
       });
       // console.log(types_query);
       let types = await leave_query.fetchPage({
-        columns: ['*'],
+        columns: ["*"],
         page: input.page,
         pageSize: input.per_page,
       });
@@ -89,6 +86,55 @@ class LeaveworkController {
       });
     }
   }
+  async updateLeave(req, res) {
+    try {
+      let input = req.body;
+      let leave_id = req.params.leave_id;
+      let leave = await LeaveworkModel.where("id", leave_id).fetch();
+      if (!leave) {
+        throw new Error("useless.");
+      }
+      await leave.save(
+        {
+          description: input.description,
+          date_start: input.date_start,
+          date_end: input.date_end,
+          type: input.type,
+        },
+        { methods: "update", patch: true }
+      );
+
+      res.status(200).json({
+        message: "complete",
+      });
+    } catch (err) {
+      console.log(err.stack);
+      res.status(400).json({
+        message: err.message,
+      });
+    }
+  }
+  async deleteLeave(req, res) {
+    try {
+      let leave_id = req.params.leave_id;
+      let leave = await LeaveworkModel.where("id", leave_id).fetch();
+      if (!leave) {
+        throw new Error("useless.");
+      }
+
+      await leave.destroy({ require: false });
+
+      res.status(200).json({
+        message: "complete",
+      });
+    } catch (err) {
+      console.log(err.stack);
+      res.status(400).json({
+        message: err.message,
+      });
+    }
+  }
+
 
   async uploadfile (req, res){
     try{

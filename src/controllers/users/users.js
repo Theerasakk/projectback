@@ -1,9 +1,6 @@
 const Users = require("./../../models/users");
 const Utils = require("./../../utils");
 
-
-
-
 class UsersController {
   constructor() {}
 
@@ -22,12 +19,13 @@ class UsersController {
         }
         qb.orderBy("id", "DESC");
       });
+      // console.log("this is log",users_query)
       let users = await users_query.fetchPage({
-        columns: ["id", "first_name", "last_name", "email"], //เลือก colum ตาม db ของเราด้วย++++++++++
+        columns: ["*"], //เลือก colum ตาม db ของเราด้วย++++++++++
         page: input.page,
         pageSize: input.per_page,
       });
-
+      // console.log("this is a type:",typeof users_query)
       users = users.toJSON();
       let count = await users_query.count();
 
@@ -48,15 +46,15 @@ class UsersController {
       let input = req.body;
       input.email = input.email || "";
       input.first_name = input.first_name || "";
-
+      input.last_name = input.last_name || "";
+      input.role = input.role || "";
       if (!new Utils().validateEmail(input.email)) {
         throw new Error("Invalid email.");
       }
 
       if (!input.first_name) {
-        throw new Error("Require name.");
+        throw new Error("Require first name.");
       }
-
       if (!input.last_name) {
         throw new Error("Require last name.");
       }
@@ -78,7 +76,7 @@ class UsersController {
         first_name: input.first_name,
         last_name: input.last_name,
         password: password,
-        role: input.role
+        role: input.role,
       }).save();
 
       res.status(200).json({
@@ -97,30 +95,43 @@ class UsersController {
       let authen_id = req.authen.id;
       // console.log(authen);
       if (authen) {
-        let users_query  = Users.query((qb) => { // join ตาราง
-          // qb.where("id", "=", authen_id);
-          // qb.orWhere("id", "=")
-          qb.from('users').innerJoin('leavework','users.id','leavework.id')
-          qb.where('users.id','=',authen_id)
+        let users_query = Users.query((qb) => {
+          qb.from("leavework")
+            .innerJoin("users", "users.id", "leavework.id_user_fk")
+            .innerJoin("status", "status.id", "leavework.id_status_fk");
+          qb.where("users.id", "=", authen_id);
         });
-        // console.log(users_query)
-        let users = await users_query.fetchPage({ // select informatiom
-          columns: ['*'] 
+        // console.log(typeof users_query)
+        let users = await users_query.fetchPage({
+          columns: [
+            "leavework.id",
+            "description",
+            "created_at",
+            "first_name",
+            "last_name",
+            "email",
+            "date_start",
+            "date_end",
+            "type",
+            "status_name",
+            "file",
+            "allday"
+          ],
           //เลือก colum ตาม db ของเราด้วย++++++++++
-          // columns:["id"]
+          // columns:["leavework.created_at"]
           // page: in, put.page,
           // pageSize: input.per_page,
         });
         // console.log(users)
         users = users.toJSON();
-        
+        // console.log(users);
         let count = await users_query.count();
 
         res.status(200).json({
           count: count,
           data: users,
         });
-        // console.log(users)
+        console.log(users);
       }
     } catch (err) {
       console.log(err.stack);
@@ -193,7 +204,6 @@ class UsersController {
       });
     }
   }
-
 }
 
 module.exports = UsersController;

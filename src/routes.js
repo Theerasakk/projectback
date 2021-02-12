@@ -5,7 +5,6 @@ const app = express.Router()
 const UsersRoute = require('./controllers/users/users.route')
 const AuthenRoute = require('./controllers/authen/authen.route')
 const LeaveWorkRoute = require('./controllers/leaveWork/leaveWork.route')
-const TypeRoute = require('./controllers/type/type.route')
 app.get('', (req, res)=>{
     res.send('APIs running.')
 })
@@ -14,5 +13,4 @@ app.get('', (req, res)=>{
 app.use('/authen', AuthenRoute)
 app.use('/users', UsersRoute)
 app.use('/leaveWork',LeaveWorkRoute )
-app.use('/type',TypeRoute)
 module.exports = app

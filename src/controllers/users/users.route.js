@@ -3,7 +3,6 @@ const app = express.Router();
 const Users = require("./users");
 const AuthenMiddleware = require("./../../middleware/authen");
 
-
 app.get("", (req, res) => {
   res.send("API users running.");
 });
