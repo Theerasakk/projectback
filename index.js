@@ -30,7 +30,6 @@ app.use('/public', express.static(path.join(__dirname,'public'))) // set static 
 
 // Import Routes
 const apiRoutes = require('./src/routes');
-
 app.use('/api', apiRoutes) // ถ้าเรียก /api ให้เรียกใช้ routes ใน  src/routes.js
 
 //middleware https://expressjs.com/en/guide/writing-middleware.html

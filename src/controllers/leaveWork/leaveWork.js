@@ -1,6 +1,7 @@
 const { knex } = require("../../db");
 const LeaveworkModel = require("./../../models/leave_work");
 const Utils = require("./../../utils");
+const StatusModel = require("./../../models/status");
 const fs = require('fs');
 var admin = require("firebase-admin");
 
@@ -86,6 +87,26 @@ class LeaveworkController {
       });
     }
   }
+   
+  async showStatus(req, res) {
+    try {
+      let status_q = StatusModel;
+      let status = await status_q.fetchPage({
+        columns: ["*"],
+      });
+      status = status.toJSON();
+
+      res.status(200).json({
+        data: status,
+      });
+    } catch (err) {
+      console.log(err.stack);
+      res.status(400).json({
+        message: err.message,
+      });
+    }
+  }
+
   async updateLeave(req, res) {
     try {
       let input = req.body;
@@ -100,6 +121,7 @@ class LeaveworkController {
           date_start: input.date_start,
           date_end: input.date_end,
           type: input.type,
+          id_status_fk: input.id_status_fk,
         },
         { methods: "update", patch: true }
       );
@@ -114,6 +136,8 @@ class LeaveworkController {
       });
     }
   }
+
+  
   async deleteLeave(req, res) {
     try {
       let leave_id = req.params.leave_id;

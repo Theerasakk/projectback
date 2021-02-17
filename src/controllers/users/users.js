@@ -2,7 +2,7 @@ const Users = require("./../../models/users");
 const Utils = require("./../../utils");
 
 class UsersController {
-  constructor() {}
+  constructor() { }
 
   async search(req, res) {
     try {
@@ -41,20 +41,26 @@ class UsersController {
     }
   }
 
+ 
+
   async createUser(req, res) {
     try {
       let input = req.body;
       input.email = input.email || "";
+      input.password = input.password || "";
       input.first_name = input.first_name || "";
       input.last_name = input.last_name || "";
       input.role = input.role || "";
-      if (!new Utils().validateEmail(input.email)) {
-        throw new Error("Invalid email.");
-      }
+      input.position = input.position || "";
+
+      // if (!new Utils().validateEmail(input.email)) {
+      //   throw new Error("Invalid email.");
+      // }
 
       if (!input.first_name) {
         throw new Error("Require first name.");
       }
+      
       if (!input.last_name) {
         throw new Error("Require last name.");
       }
@@ -77,6 +83,7 @@ class UsersController {
         last_name: input.last_name,
         password: password,
         role: input.role,
+        position: input.position
       }).save();
 
       res.status(200).json({
@@ -140,6 +147,52 @@ class UsersController {
       });
     }
   }
+
+  async showAllUser(req, res) {
+    try {
+      let authen = req.authen;
+      let authen_role = req.authen.role;
+      if (authen_role === "admin") {
+        console.log(authen_role)
+        let users_query = Users.query((qb) => {
+          qb.from("leavework")
+            .innerJoin("users", "users.id", "leavework.id_user_fk")
+            .innerJoin("status", "status.id", "leavework.id_status_fk");
+          qb.where("users.role", "!=", authen_role);
+        });
+        let users = await users_query.fetchPage({
+          columns: [
+            // "leavework.id",
+            "description",
+            "created_at",
+            "first_name",
+            "last_name",
+            "email",
+            "date_start",
+            "date_end",
+            "type",
+            "status_name",
+            "id_status_fk",
+            "role"
+          ],
+        });
+        users = users.toJSON();
+        let count = await users_query.count();
+
+        res.status(200).json({
+          count: count,
+          data: users,
+        });
+        // console.log(users);
+      }
+    } catch (err) {
+      console.log(err.stack);
+      res.status(400).json({
+        message: err.message,
+      });
+    }
+  }
+
   async updateUser(req, res) {
     try {
       let input = req.body;

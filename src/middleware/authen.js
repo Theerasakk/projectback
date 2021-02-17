@@ -12,7 +12,7 @@ class AuthenMiddleware {
 
       // add request data
       req.authen = decoded;
-    //   console.log(req.authen);
+      console.log(req.authen);
       next();
     } catch (err) {
     //   console.log(err.stack);

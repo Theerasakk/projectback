@@ -29,31 +29,22 @@ class AuthenController {
       }
       user = user.toJSON();
      
-    if(user.role === "admin"){
+    
       let token = new Utils().signToken({
         id: user.id,
-        name: user.name,
-        role: "admin",
+        first_name: user.first_name,
+        last_name: user.last_name,
+        email: user.email,
+        role: user.role,
       });
       res.status(200).json({
         type: "Bearer",
         token: token,
       });
       console.log(token)
-      
-    } else {
-      let token = new Utils().signToken({
-        id: user.id,
-        name: user.name,
-        role: "user",
-      });
 
-      res.status(200).json({
-        type: "Bearer",
-        token: token,
-      });
-    }
-    console.log(user);
+    
+      console.log(user);
       console.log(user.role);
     } catch (err) {
       console.log(err.stack);
