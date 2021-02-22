@@ -6,4 +6,5 @@ app.get("", (req, res) => {
 });
 
 app.post("/createholiday", new Holiday().createHoliday);
+app.get("/getholiday", new Holiday().getHoliday);
 module.exports = app;

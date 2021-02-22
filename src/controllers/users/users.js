@@ -150,10 +150,12 @@ class UsersController {
 
   async showAllUser(req, res) {
     try {
-      let authen = req.authen;
+      let input = req.query;
+      // let authen = req.authen;
       let authen_role = req.authen.role;
+      input.page = input.page || 1;
+      input.per_page = input.per_page || 10;
       if (authen_role === "admin") {
-        console.log(authen_role)
         let users_query = Users.query((qb) => {
           qb.from("leavework")
             .innerJoin("users", "users.id", "leavework.id_user_fk")
@@ -162,7 +164,7 @@ class UsersController {
         });
         let users = await users_query.fetchPage({
           columns: [
-            // "leavework.id",
+            "leavework.id",
             "description",
             "created_at",
             "first_name",
@@ -173,8 +175,14 @@ class UsersController {
             "type",
             "status_name",
             "id_status_fk",
-            "role"
+            "role",
+            "file",
+            "allday"
+
+            //update
           ],
+          pageSize: input.per_page, // Defaults to 10 if not specified
+          page: input.page, // Defaults to 1 if not specified
         });
         users = users.toJSON();
         let count = await users_query.count();
@@ -183,7 +191,7 @@ class UsersController {
           count: count,
           data: users,
         });
-        // console.log(users);
+        console.log(users);
       }
     } catch (err) {
       console.log(err.stack);

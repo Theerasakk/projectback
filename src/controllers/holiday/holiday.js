@@ -9,13 +9,34 @@ class HolidayController {
       let input = req.body;
       input.date = input.date || "";
       input.content = input.content || "";
+      input.type = input.type || "";
       await new HolidayModel({
         date: input.date,
         content: input.content,
+        type: input.type,
       }).save();
 
       res.status(200).json({
         message: "complete",
+      });
+    } catch (err) {
+      console.log(err.stack);
+      res.status(400).json({
+        message: err.message,
+      });
+    }
+  }
+
+  async getHoliday(req, res) {
+    try {
+      let holiday_q = HolidayModel;
+      let holiday = await holiday_q.fetchPage({});
+
+      holiday = holiday.toJSON();
+      let count = await holiday_q.count();
+      res.status(200).json({
+        data: holiday,
+        count: count,
       });
     } catch (err) {
       console.log(err.stack);
