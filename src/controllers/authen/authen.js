@@ -6,11 +6,13 @@ class AuthenController {
   constructor() {}
 
   async login(req, res) {
+    
     try {
       let input = req.body;
       input.email = input.email || "";
 
       if (!new Utils().validateEmail(input.email)) {
+        
         throw new Error("Invalid email.");
       }
 
@@ -25,7 +27,8 @@ class AuthenController {
         .where("password", password)
         .fetch();
       if (!user) {
-        throw new Error("Invalid email/password.");
+        throw new Error("Invalid Email/Password")
+
       }
       user = user.toJSON();
      
@@ -42,15 +45,18 @@ class AuthenController {
         token: token,
       });
       console.log(token)
+      
 
     
       console.log(user);
       console.log(user.role);
-    } catch (err) {
+    } catch (err) { 
       console.log(err.stack);
       res.status(400).json({
-        message: err.message,
+         message: err.message,
+       
       });
+      
     }
   }
 }

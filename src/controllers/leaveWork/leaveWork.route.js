@@ -5,7 +5,7 @@ const multer = require("multer");
 
 const uploads = multer({
   fileFilter: (req, file, cb) => {
-    var filecheck = /jpg|peg|gif|png/.test(file.mimetype) //เช็ค type immage
+    var filecheck = /jpg|peg|gif|png|pdf/.test(file.mimetype) //เช็ค type immage
     if(filecheck){
       return cb(null, true) //
     }else {
