@@ -16,8 +16,9 @@ class UsersController {
           qb.where("first_name", "LIKE", `%${input.search}%`);
           qb.orWhere("last_name", "LIKE", `%${input.search}%`);
           qb.orWhere("email", "LIKE", `%${input.search}%`);
+          qb.whereNot('role', admin)
         }
-        qb.orderBy("id", "DESC");
+        qb.orderBy("id", "ASC");
       });
       // console.log("this is log",users_query)
       let users = await users_query.fetchPage({
@@ -47,20 +48,18 @@ class UsersController {
     try {
       let input = req.body;
       input.email = input.email || "";
-      input.password = input.password || "";
       input.first_name = input.first_name || "";
       input.last_name = input.last_name || "";
       input.role = input.role || "";
       input.position = input.position || "";
-
-      // if (!new Utils().validateEmail(input.email)) {
-      //   throw new Error("Invalid email.");
-      // }
+      input.max_days = input.max_days || "";
+      if (!new Utils().validateEmail(input.email)) {
+        throw new Error("Invalid email.");
+      }
 
       if (!input.first_name) {
         throw new Error("Require first name.");
       }
-      
       if (!input.last_name) {
         throw new Error("Require last name.");
       }
@@ -83,7 +82,8 @@ class UsersController {
         last_name: input.last_name,
         password: password,
         role: input.role,
-        position: input.position
+        position: input.position,
+        max_days:input.max_days,
       }).save();
 
       res.status(200).json({
@@ -150,17 +150,20 @@ class UsersController {
 
   async showAllUser(req, res) {
     try {
-      let input = req.query;
-      // let authen = req.authen;
+      let input = req.body;
       let authen_role = req.authen.role;
-      input.page = input.page || 1;
+      (input.check = input.check || ""), (input.page = input.page || 1);
       input.per_page = input.per_page || 10;
       if (authen_role === "admin") {
         let users_query = Users.query((qb) => {
           qb.from("leavework")
             .innerJoin("users", "users.id", "leavework.id_user_fk")
             .innerJoin("status", "status.id", "leavework.id_status_fk");
-          qb.where("users.role", "!=", authen_role);
+          qb.where("check", "LIKE", `%${input.check}%`).whereNot(
+            "role",
+            authen_role
+          );
+          qb.orderBy("updated_at", "DESC");
         });
         let users = await users_query.fetchPage({
           columns: [
@@ -176,14 +179,17 @@ class UsersController {
             "status_name",
             "id_status_fk",
             "role",
-            "file",
-            "allday"
+            "check",
+            "max_days",
+            "current_day",
+            "file"
 
             //update
           ],
           pageSize: input.per_page, // Defaults to 10 if not specified
           page: input.page, // Defaults to 1 if not specified
         });
+
         users = users.toJSON();
         let count = await users_query.count();
 
@@ -244,7 +250,7 @@ class UsersController {
     try {
       let authen = req.authen;
       let user_id = req.params.user_id;
-      if (authen.id != user_id) {
+      if (authen.role != "admin") {
         throw new Error("ไม่มีสิทธิ์เข้าถึง.");
       }
       // check

@@ -9,8 +9,8 @@ app.get("", (req, res) => {
 
 app.post("/search", new Users().search);
 app.get("/showDB", [new AuthenMiddleware().verifyJWT], new Users().showDB);
-app.get("/showbyuser", [new AuthenMiddleware().verifyJWT], new Users().showAllUser);
-app.post("/createuser", new Users().createUser)
+app.post("/showbyuser", [new AuthenMiddleware().verifyJWT], new Users().showAllUser);
+app.post("/create", new Users().createUser);
 
 app.put(
   "/update/:user_id",

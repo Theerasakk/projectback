@@ -1,5 +1,6 @@
 const { knex } = require("../../db");
 const LeaveworkModel = require("./../../models/leave_work");
+const UsersModel = require("./../../models/users");
 const Utils = require("./../../utils");
 const StatusModel = require("./../../models/status");
 const fs = require('fs');
@@ -19,8 +20,9 @@ class LeaveworkController {
       input.date_start = input.date_start || "";
       input.date_end = input.date_end || "";
       input.description = input.description || "";
-      input.file = input.file
-      input.allday = input.allday || "";
+      input.file = input.file || "";
+      input.check = input.check;
+      input.allday = input.allday;
       // await new Leavework({
       //   id_users: input.id_users,
       //   date_time: input.date_time,
@@ -34,6 +36,7 @@ class LeaveworkController {
         date_end: input.date_end,
         description: input.description,
         file: input.file,
+        check: input.check,
         allday: input.allday
       }).save();
 
@@ -50,43 +53,43 @@ class LeaveworkController {
     }
   }
 
-  async showLeave(req, res) {
-    try {
-      let input = req.body;
-      input.search = input.search || "";
-      input.page = input.page || 1;
-      input.per_page = input.per_page || 10;
+  // async showLeave(req, res) {
+  //   try {
+  //     let input = req.body;
+  //     input.search = input.search || "";
+  //     input.page = input.page || 1;
+  //     input.per_page = input.per_page || 10;
 
-      let leave_query = LeaveworkModel.query((qb) => {
-        if (input.search) {
-          qb.where("id", "LIKE", `%${input.search}%`);
-          qb.orWhere("description", "LIKE", `%${input.search}%`);
-          qb.orWhere("email", "LIKE", `%${input.search}%`);
-        }
-        qb.orderBy("id", "DESC");
-      });
-      // console.log(types_query);
-      let types = await leave_query.fetchPage({
-        columns: ["*"],
-        page: input.page,
-        pageSize: input.per_page,
-      });
+  //     let leave_query = LeaveworkModel.query((qb) => {
+  //       if (input.search) {
+  //         qb.where("id", "LIKE", `%${input.search}%`);
+  //         qb.orWhere("description", "LIKE", `%${input.search}%`);
+  //         qb.orWhere("email", "LIKE", `%${input.search}%`);
+  //       }
+  //       qb.orderBy("id", "DESC");
+  //     });
+  //     // console.log(types_query);
+  //     let types = await leave_query.fetchPage({
+  //       columns: ["*"],
+  //       page: input.page,
+  //       pageSize: input.per_page,
+  //     });
 
-      types = leave_query.toJSON();
-      // let count = await leave_query.count();
+  //     types = leave_query.toJSON();
+  //     // let count = await leave_query.count();
 
-      res.status(200).json({
-        // count: count,
-        data: types,
-      });
-      // console.log(users)
-    } catch (err) {
-      console.log(err.stack);
-      res.status(400).json({
-        message: err.message,
-      });
-    }
-  }
+  //     res.status(200).json({
+  //       // count: count,
+  //       data: types,
+  //     });
+  //     // console.log(users)
+  //   } catch (err) {
+  //     console.log(err.stack);
+  //     res.status(400).json({
+  //       message: err.message,
+  //     });
+  //   }
+  // }
    
   async showStatus(req, res) {
     try {
@@ -98,6 +101,56 @@ class LeaveworkController {
 
       res.status(200).json({
         data: status,
+      });
+    } catch (err) {
+      console.log(err.stack);
+      res.status(400).json({
+        message: err.message,
+      });
+    }
+  }
+
+  async filterData(req, res) {
+    try {
+      let input = req.body;
+      input.search = input.search || "";
+      // input.last_name = input.last_name || "";
+      input.page = input.page || 1;
+      input.per_page = input.per_page || 10;
+
+      let filter_q = LeaveworkModel.query((qb) => {
+        qb.from("leavework")
+          .innerJoin("users", "users.id", "leavework.id_user_fk")
+          .innerJoin("status", "status.id", "leavework.id_status_fk");
+        if (input.search) {
+          qb.where("first_name", "LIKE", `%${input.search}%`);
+          qb.orWhere("last_name", "LIKE", `%${input.search}%`);
+        }
+        // qb.orderBy("updated_at", "DESC");
+      });
+      let filters = await filter_q.fetchPage({
+        columns: [
+          "leavework.id",
+          "description",
+          "created_at",
+          "first_name",
+          "last_name",
+          "email",
+          "date_start",
+          "date_end",
+          "type",
+          "id_status_fk",
+          "status_name",
+        ],
+        page: input.page,
+        pageSize: input.per_page,
+      });
+      filters = filters.toJSON();
+      let count = await filter_q.count();
+
+      res.status(200).json({
+        count: count,
+        data: filters,
       });
     } catch (err) {
       console.log(err.stack);
@@ -122,6 +175,7 @@ class LeaveworkController {
           date_end: input.date_end,
           type: input.type,
           id_status_fk: input.id_status_fk,
+          check: input.check,
         },
         { methods: "update", patch: true }
       );
