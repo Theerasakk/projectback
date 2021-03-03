@@ -18,6 +18,7 @@ app.put(
   new Users().updateUser
 );
 
+
 app.delete(
   "/delete/:user_id",
   [new AuthenMiddleware().verifyJWT],

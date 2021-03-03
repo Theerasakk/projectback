@@ -23,28 +23,35 @@ class LeaveworkController {
       input.file = input.file || "";
       input.check = input.check;
       input.allday = input.allday;
+      if(!input.date_start || !input.date_end || !input.allday){
+        throw new Error("กรุณาตรวจสอบวันที่ให้ถูกต้อง");
+      } else if (!input.type){
+        throw new Error("กรุณาใส่ประเภทการลางาน");
+      } else {
+        await new LeaveworkModel({
+          id_user_fk: input.id_user_fk,
+          id_status_fk: input.id_status_fk,
+          type: input.type,
+          date_start: input.date_start,
+          date_end: input.date_end,
+          description: input.description,
+          file: input.file,
+          check: input.check,
+          allday: input.allday
+        }).save();
+        res.status(200).json({
+          message: "complete",
+        });
+      }
       // await new Leavework({
       //   id_users: input.id_users,
       //   date_time: input.date_time,
       //   type_leave: input.type_leave,
       // }).save();
-      await new LeaveworkModel({
-        id_user_fk: input.id_user_fk,
-        id_status_fk: input.id_status_fk,
-        type: input.type,
-        date_start: input.date_start,
-        date_end: input.date_end,
-        description: input.description,
-        file: input.file,
-        check: input.check,
-        allday: input.allday
-      }).save();
+     
 
       // .from("user")
       // .innerJoin("leavework", "users.id", "leavework.id_users");
-      res.status(200).json({
-        message: "complete",
-      });
     } catch (err) {
       console.log(err.stack);
       res.status(400).json({
@@ -176,6 +183,7 @@ class LeaveworkController {
           type: input.type,
           id_status_fk: input.id_status_fk,
           check: input.check,
+          allday: input.allday
         },
         { methods: "update", patch: true }
       );

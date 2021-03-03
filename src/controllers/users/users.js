@@ -53,20 +53,28 @@ class UsersController {
       input.role = input.role || "";
       input.position = input.position || "";
       input.max_days = input.max_days || "";
-      if (!new Utils().validateEmail(input.email)) {
-        throw new Error("Invalid email.");
-      }
+
 
       if (!input.first_name) {
         throw new Error("Require first name.");
       }
-      if (!input.last_name) {
+      else if (!input.last_name) {
         throw new Error("Require last name.");
       }
 
-      if (!input.password) {
+      else if (!new Utils().validateEmail(input.email)) {
+        throw new Error("Invalid email.");
+      }
+
+      else if (!input.password) {
         throw new Error("Require password.");
       }
+
+      else if (!input.position){
+        throw new Error("Require position");
+      }
+      else if (!input.max_days || input.max_days === 0)
+        throw new Error("กรุณาใส่จำนวนวันลาให้ถูกต้อง");
 
       let password = new Utils().encryptPassword(input.password);
 
@@ -213,13 +221,21 @@ class UsersController {
       let authen = req.authen;
       // console.log(authen.id, req.params.user_id)
       let user_id = req.params.user_id;
-      if (authen.id != user_id) {
+      if (authen.role != "admin") {
         throw new Error("ไม่มีสิทธิ์เข้าถึง.");
       }
 
-      input.name = input.name || "";
-      if (!input.name) {
-        throw new Error("Require name.");
+      input.first_name = input.first_name || "";
+      if (!input.first_name) {
+        throw new Error("Require full name.");
+      }
+      input.last_name = input.last_name || "";
+      if (!input.last_name) {
+        throw new Error("Require full name.");
+      }
+      input.email = input.email || "";
+      if (!input.email) {
+        throw new Error("Require email.");
       }
 
       // check
@@ -230,7 +246,13 @@ class UsersController {
 
       await user.save(
         {
-          name: input.name,
+          first_name: input.first_name,
+          last_name:input.last_name,
+          email: input.email,
+          password:input.password,
+          position: input.position,
+          max_days:input.max_days
+
         },
         { methods: "update", patch: true }
       );

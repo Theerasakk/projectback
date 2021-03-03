@@ -12,7 +12,6 @@ class AuthenController {
       input.email = input.email || "";
 
       if (!new Utils().validateEmail(input.email)) {
-        
         throw new Error("Invalid email.");
       }
 
@@ -39,6 +38,7 @@ class AuthenController {
         last_name: user.last_name,
         email: user.email,
         role: user.role,
+        max_days: user.max_days,
       });
       res.status(200).json({
         type: "Bearer",
